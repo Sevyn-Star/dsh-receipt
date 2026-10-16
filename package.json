@@ -1,0 +1,29 @@
+{
+  "name": "dsh-receipt",
+  "version": "0.1.0",
+  "private": true,
+  "description": "角落一张卡片，大字只写这场会话白烧了多少钱。",
+  "type": "module",
+  "author": "Sevyn-Star",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "files": [
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness"
+  ]
+}

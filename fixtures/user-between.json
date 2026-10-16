@@ -1,0 +1,15 @@
+{
+  "name": "失败后用户又说了一句",
+  "events": [
+    {"type": "model/selection", "data": {"provider": "deepseek", "model": "deepseek-flash"}},
+    {"type": "user/message", "data": {"role": "user", "source": {"kind": "user"}, "content": [{"type": "text", "text": "读 README"}]}},
+    {"type": "assistant/message", "data": {"turn": 1, "step": 1, "usage": {"inputTokens": 1000000, "outputTokens": 0}}},
+    {"type": "tool/call", "data": {"turn": 1, "step": 1, "callId": "c1", "name": "read", "arguments": "{\"path\":\"README.md\"}"}},
+    {"type": "tool/result", "data": {"turn": 1, "step": 1, "message": {"role": "tool", "toolCallId": "c1", "isError": true, "content": [{"type": "text", "text": "not found"}]}}},
+    {"type": "user/message", "data": {"role": "user", "source": {"kind": "user"}, "content": [{"type": "text", "text": "换个读法再试"}]}},
+    {"type": "assistant/message", "data": {"turn": 2, "step": 1, "usage": {"inputTokens": 1000000, "outputTokens": 0}}},
+    {"type": "tool/call", "data": {"turn": 2, "step": 1, "callId": "c2", "name": "read", "arguments": "{\"path\":\"README.md\"}"}},
+    {"type": "tool/result", "data": {"turn": 2, "step": 1, "message": {"role": "tool", "toolCallId": "c2", "isError": false, "content": [{"type": "text", "text": "# 收据"}]}}}
+  ],
+  "expect": {"latestStepMicro": 150000, "sessionMicro": 300000, "wasteMicro": 0, "wasteCount": 0, "unpricedSteps": 0}
+}

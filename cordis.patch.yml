@@ -1,0 +1,6 @@
+# 插入收据。period 可改为 peak，按 DeepSeek 忙时单价估算。
+- insert:
+    - id: dsh-receipt
+      name: dsh-receipt
+      config:
+        period: off-peak

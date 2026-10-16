@@ -1,0 +1,14 @@
+{
+  "name": "检索返回空又原样再搜",
+  "events": [
+    {"type": "model/selection", "data": {"provider": "deepseek", "model": "deepseek-flash"}},
+    {"type": "user/message", "data": {"role": "user", "source": {"kind": "user"}, "content": [{"type": "text", "text": "搜一下收据"}]}},
+    {"type": "assistant/message", "data": {"turn": 1, "step": 1, "usage": {"inputTokens": 1000000, "outputTokens": 0}}},
+    {"type": "tool/call", "data": {"turn": 1, "step": 1, "callId": "c1", "name": "search", "arguments": "{\"q\":\"收据\"}"}},
+    {"type": "tool/result", "data": {"turn": 1, "step": 1, "message": {"role": "tool", "toolCallId": "c1", "isError": false, "content": [{"type": "text", "text": "  "}]}}},
+    {"type": "assistant/message", "data": {"turn": 1, "step": 2, "usage": {"inputTokens": 1000000, "outputTokens": 0}}},
+    {"type": "tool/call", "data": {"turn": 1, "step": 2, "callId": "c2", "name": "search", "arguments": "{\"q\":\"收据\"}"}},
+    {"type": "tool/result", "data": {"turn": 1, "step": 2, "message": {"role": "tool", "toolCallId": "c2", "isError": false, "content": [{"type": "text", "text": "一条结果"}]}}}
+  ],
+  "expect": {"latestStepMicro": 150000, "sessionMicro": 300000, "wasteMicro": 150000, "wasteCount": 1, "unpricedSteps": 0}
+}

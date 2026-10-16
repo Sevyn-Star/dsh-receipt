@@ -1,0 +1,15 @@
+{
+  "name": "同一会话里换模型",
+  "events": [
+    {"type": "model/selection", "data": {"provider": "deepseek", "model": "deepseek-flash"}},
+    {"type": "user/message", "data": {"role": "user", "source": {"kind": "user"}, "content": [{"type": "text", "text": "先用 flash"}]}},
+    {"type": "assistant/message", "data": {"turn": 1, "step": 1, "usage": {"inputTokens": 1000000, "outputTokens": 0}}},
+    {"type": "tool/call", "data": {"turn": 1, "step": 1, "callId": "c1", "name": "read", "arguments": "{\"path\":\"a.md\"}"}},
+    {"type": "tool/result", "data": {"turn": 1, "step": 1, "message": {"role": "tool", "toolCallId": "c1", "isError": false, "content": [{"type": "text", "text": "a"}]}}},
+    {"type": "model/selection", "data": {"provider": "deepseek", "model": "deepseek-v4-pro"}},
+    {"type": "assistant/message", "data": {"turn": 1, "step": 2, "usage": {"inputTokens": 1000000, "outputTokens": 0}}},
+    {"type": "tool/call", "data": {"turn": 1, "step": 2, "callId": "c2", "name": "read", "arguments": "{\"path\":\"b.md\"}"}},
+    {"type": "tool/result", "data": {"turn": 1, "step": 2, "message": {"role": "tool", "toolCallId": "c2", "isError": false, "content": [{"type": "text", "text": "b"}]}}}
+  ],
+  "expect": {"latestStepMicro": 660000, "sessionMicro": 810000, "wasteMicro": 0, "wasteCount": 0, "unpricedSteps": 0}
+}
