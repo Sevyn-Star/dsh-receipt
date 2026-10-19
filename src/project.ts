@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { callPhrase } from './phrase.ts'
 
 /** 一份已经从会话日志里拆出来的用量。四项互不重叠。 */
 export interface Usage {
@@ -19,6 +20,10 @@ export interface ProjectedCall {
   readonly barrier: number
   readonly turn: number
   readonly step: number
+  /** 给人看的动作，例如「读 `/tmp/a`」。 */
+  readonly action: string
+  /** 句子后半用的动词，例如「读」。 */
+  readonly verb: string
 }
 
 export interface ProjectedStep {
@@ -96,6 +101,7 @@ export function project(events: readonly SessionEvent[]): Projection {
       const name = stringField(data, 'name')
       if (!callId || !name) continue
       const step = ensureStep(steps, numberField(data, 'turn'), numberField(data, 'step'), model)
+      const phrase = callPhrase(name, stringField(data, 'arguments') ?? '')
       const index = calls.length
       calls.push({
         callId,
@@ -107,6 +113,8 @@ export function project(events: readonly SessionEvent[]): Projection {
         barrier,
         turn: step.turn,
         step: step.step,
+        action: phrase.action,
+        verb: phrase.verb,
       })
       callAt.set(callId, index)
       step.callIndexes.push(index)

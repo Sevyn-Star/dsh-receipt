@@ -1,6 +1,8 @@
 # 插入收据。period 可改为 peak，按 DeepSeek 忙时单价估算。
+# remind 写成 false，就不再往会话里插那句重试提醒。
 - insert:
     - id: dsh-receipt
       name: dsh-receipt
       config:
         period: off-peak
+        remind: true

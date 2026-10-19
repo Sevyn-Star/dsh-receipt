@@ -1,6 +1,6 @@
 import { tally, type Receipt } from './ledger.ts'
 import { findModelPrice, rate, type PriceTable } from './prices.ts'
-import { project, readModel, type SessionEvent, type Usage } from './project.ts'
+import { project, readModel, type ProjectedCall, type SessionEvent, type Usage } from './project.ts'
 
 const EMPTY_USAGE: Usage = {
   inputTokens: 0,
@@ -33,10 +33,11 @@ export class Book {
     this.touch(sessionId)
   }
 
-  append(sessionId: string, event: SessionEvent): void {
+  /** 同一序号已经记过时返回 false，避免提醒插第二次。 */
+  append(sessionId: string, event: SessionEvent): boolean {
     if (typeof event.seq === 'number') {
       const watermark = this.watermark.get(sessionId) ?? -1
-      if (event.seq <= watermark) return
+      if (event.seq <= watermark) return false
       this.watermark.set(sessionId, event.seq)
     }
     const list = this.events.get(sessionId) ?? []
@@ -44,6 +45,11 @@ export class Book {
     this.events.set(sessionId, list)
     this.touch(sessionId)
     if (event.type === 'assistant/message') this.pending.delete(sessionId)
+    return true
+  }
+
+  calls(sessionId: string): readonly ProjectedCall[] {
+    return project(this.events.get(sessionId) ?? []).calls
   }
 
   /** 进行中的模型调用。只改这一步和这场的金额，不算进浪费。 */

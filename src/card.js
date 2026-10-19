@@ -1,6 +1,14 @@
 // 金额格式与 src/ledger.ts 的 formatUsd 一致：1 单位 = 10^-6 美元。
 var rootId = 'dsh-receipt'
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function formatUsd(micro) {
   var sign = micro < 0 ? '-' : ''
   var absolute = Math.abs(Math.round(micro))
@@ -18,9 +26,10 @@ function mount() {
     '#dsh-receipt button{padding:10px 12px;cursor:pointer;text-align:left}',
     '#dsh-receipt .kicker{display:block;opacity:.72}',
     '#dsh-receipt strong{display:block;font-size:22px;font-variant-numeric:tabular-nums}',
-    '#dsh-receipt .detail{margin-bottom:8px;padding:10px 12px}',
+    '#dsh-receipt .detail{margin-bottom:8px;padding:10px 12px;max-width:360px}',
     '#dsh-receipt .detail[hidden]{display:none}',
-    '#dsh-receipt .detail p{margin:4px 0}',
+    '#dsh-receipt .detail p{margin:4px 0;overflow-wrap:anywhere}',
+    '#dsh-receipt .repeats{margin:10px 0 2px;opacity:.72}',
     '#dsh-receipt .note{margin:8px 0 0;opacity:.6}',
   ].join('')
   document.head.appendChild(style)
@@ -86,10 +95,19 @@ function mount() {
           if (unknown) unknown.textContent = '未定价'
         } else if (receipt.wasteMicro !== shown) roll(receipt.wasteMicro)
         var step = receipt.latestStepMicro == null ? '—' : formatUsd(receipt.latestStepMicro)
-        detail.innerHTML = '<p>这一步 ' + step + '</p>'
+        var html = '<p>这一步 ' + step + '</p>'
           + '<p>这场会话 ' + formatUsd(receipt.sessionMicro) + '</p>'
           + '<p>盲重试浪费了 ' + formatUsd(receipt.wasteMicro) + '</p>'
-          + '<p class="note">按本地价目估算</p>'
+        var repeats = receipt.repeats
+        if (repeats && repeats.length) {
+          html += '<p class="repeats">这场在重复什么</p>'
+          for (var i = 0; i < repeats.length; i++) {
+            var row = repeats[i]
+            var money = row.micro == null ? '' : '，大约 ' + formatUsd(row.micro)
+            html += '<p>' + escapeHtml(row.text) + money + '</p>'
+          }
+        }
+        detail.innerHTML = html + '<p class="note">按本地价目估算</p>'
       })
       .catch(function () {})
   }

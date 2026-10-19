@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { Book, readStreamUsage } from './book.ts'
 import { pricesFromConfig } from './prices.ts'
 import type { SessionEvent } from './project.ts'
+import { blindGroupKey, reminderMessage, remindEnabled, takeReminder } from './remind.ts'
 
 const CARD_SOURCE = readFileSync(new URL('./card.js', import.meta.url), 'utf8')
 const CARD_BOOT = 'var s=document.createElement("script");s.src="/dsh-receipt/card.js";s.onerror=function(){};document.body.appendChild(s);'
@@ -25,6 +26,7 @@ interface SessionStore {
 interface PluginContext {
   on(event: string, listener: (...args: never[]) => void): void
   inject?(names: string[], callback: (ctx: PluginContext) => void): void
+  get?(name: string): unknown
   sessions?: SessionStore
   webServer?: {
     register(route: { kind: 'exact'; path: string; handler: (req: IncomingRequest, res: ServerResult) => void }): void
@@ -45,6 +47,8 @@ export const name = 'dsh-receipt'
 
 export function apply(ctx: PluginContext, config?: unknown): void {
   const book = new Book(pricesFromConfig(config))
+  const remind = remindEnabled(config)
+  const reminded = new Set<string>()
 
   ctx.on('webserver/index-inject', ((table: IndexRow[]) => {
     const already = table.some(row => row.src === '/dsh-receipt/card.js' || (row.text ?? '').includes('/dsh-receipt/card.js'))
@@ -62,7 +66,8 @@ export function apply(ctx: PluginContext, config?: unknown): void {
       data: event.data,
       seq: typeof event.seq === 'number' ? event.seq : undefined,
     }
-    book.append(session.id, next)
+    if (!book.append(session.id, next)) return
+    remindSession(ctx, book, session.id, next, remind, reminded)
   }) as (...args: never[]) => void)
 
   try {
@@ -109,6 +114,44 @@ export function apply(ctx: PluginContext, config?: unknown): void {
       for (const session of live) seedSession(book, session)
     })
   } else mount(ctx)
+}
+
+function remindSession(
+  ctx: PluginContext,
+  book: Book,
+  sessionId: string,
+  event: SessionEvent,
+  enabled: boolean,
+  reminded: Set<string>,
+): void {
+  const callId = settledCallId(event)
+  if (!callId) return
+  const key = blindGroupKey(book.calls(sessionId), callId)
+  if (!takeReminder(enabled, key === null ? null : `${sessionId}\u0000${key}`, reminded)) return
+  const agents = ctx.get?.('agents') as { get?: (id: string) => { inject?: (message: unknown) => void } | undefined } | undefined
+  const agent = agents?.get?.(sessionId)
+  if (typeof agent?.inject !== 'function') {
+    reminded.delete(`${sessionId}\u0000${key}`)
+    return
+  }
+  try {
+    agent.inject(reminderMessage())
+  } catch {
+    reminded.delete(`${sessionId}\u0000${key}`)
+  }
+}
+
+function settledCallId(event: SessionEvent): string | null {
+  if (event.type !== 'tool/result') return null
+  const data = event.data
+  if (!data || typeof data !== 'object') return null
+  const record = data as Record<string, unknown>
+  const message = record.message
+  if (message && typeof message === 'object') {
+    const callId = (message as Record<string, unknown>).toolCallId
+    if (typeof callId === 'string' && callId) return callId
+  }
+  return typeof record.callId === 'string' && record.callId ? record.callId : null
 }
 
 function sessionQuery(url: string | undefined): string | null {
