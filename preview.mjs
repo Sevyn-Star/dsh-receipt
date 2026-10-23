@@ -5,13 +5,47 @@ const port = Number(process.env.PORT || 4173)
 const card = readFileSync(new URL('./src/card.js', import.meta.url), 'utf8')
 const page = `<!doctype html>
 <meta charset="utf-8">
-<title>收据</title>
+<title>收据 · 预览</title>
 <style>
-  body { margin: 0; min-height: 100vh; background: #f3f3f1; color: #222; font: 16px/1.5 ui-sans-serif, system-ui, sans-serif; }
-  main { max-width: 36rem; padding: 48px 24px; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f4f4f2 70%);
+    color: #18181b;
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 64px 24px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #52525b;
+    background: #e4e4e7;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+  p {
+    margin: 0;
+    color: #52525b;
+  }
 </style>
 <main>
-  <p>左下角那张卡片就是收据。数字每两秒跳一次，点开能看到三行。</p>
+  <span class="badge">dsh-receipt</span>
+  <h1>收据卡片预览</h1>
+  <p>左下角那张卡片就是收据。数字每两秒跳一次，点开能看到三行明细与重复调用。</p>
 </main>
 <script src="/dsh-receipt/card.js"></script>
 `
@@ -31,6 +65,13 @@ function receipt() {
     currency: 'USD',
     period: 'off-peak',
     priceCheckedOn: '2026-10-15',
+    repeats: index === 0 ? [] : [
+      {
+        text: `读 \`/tmp/dsh-receipt-missing.txt\`，失败后又读了 ${index} 次`,
+        count: index,
+        micro: waste,
+      },
+    ],
   }
 }
 
